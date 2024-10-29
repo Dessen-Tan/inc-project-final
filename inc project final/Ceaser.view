@@ -1,0 +1,105 @@
+import SwiftUI
+
+struct Ceaser: View {
+    @State var counter = 0
+    @State private var newTaskTitle = ""
+    @State private var newTaskTitle2 = ""
+    @State private var newTaskTitle3 = ""
+    @State private var newTaskTitle4 = ""
+    @State private var newTaskTitle5 = ""
+    @State private var newTaskTitle6 = "" // New state for 6th input
+    
+    var body: some View {
+        VStack {
+            Text("Enter letters to apply Caesar cipher:")
+            Spacer()
+            HStack {
+                TextField("1st", text: $newTaskTitle)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(width: 50)
+                TextField("2nd", text: $newTaskTitle2)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(width: 50)
+                TextField("3rd", text: $newTaskTitle3)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(width: 50)
+                TextField("4th", text: $newTaskTitle4)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(width: 50)
+                TextField("5th", text: $newTaskTitle5)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(width: 50)
+                TextField("6th", text: $newTaskTitle6) // New TextField for 6th input
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(width: 50)
+            }
+            Spacer()
+            Text("Shift Amount: \(counter)")
+            WheelView(shift: counter)
+                .frame(width: 150, height: 150)
+                .padding()
+            Stepper("Shift Amount", value: $counter, in: 0...50) // Allowing more than 25
+                .onChange(of: counter) { newValue in
+                    if newValue > 25 {
+                        counter = 0 // Reset to 0 if it exceeds 25
+                    }
+                }
+                .labelsHidden()
+            Button("") {
+                // Encryption logic can go here
+            }
+            .padding()
+            .disabled(!areInputsValid())
+            
+            Text("Encrypted Letters: \(getEncryptedString())")
+                .padding()
+        }
+        .padding()
+    }
+
+    private func getEncryptedString() -> String {
+        let inputs = [newTaskTitle, newTaskTitle2, newTaskTitle3, newTaskTitle4, newTaskTitle5, newTaskTitle6] // Updated to include 6th input
+        let encryptedLetters = inputs.compactMap { caesarCipher(letter: $0, shift: counter) }
+        return encryptedLetters.joined()
+    }
+    
+    private func caesarCipher(letter: String, shift: Int) -> String? {
+        guard let firstCharacter = letter.uppercased().first else { return nil }
+        let alphabet = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        if let index = alphabet.firstIndex(of: firstCharacter) {
+            let newIndex = (index + shift) % alphabet.count
+            return String(alphabet[newIndex])
+        }
+        return nil
+    }
+    
+    private func areInputsValid() -> Bool {
+        let inputs = [newTaskTitle, newTaskTitle2, newTaskTitle3, newTaskTitle4, newTaskTitle5, newTaskTitle6] // Updated to include 6th input
+        return inputs.allSatisfy { $0.count == 1 }
+    }
+}
+
+struct WheelView: View {
+    var shift: Int
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.gray, lineWidth: 4)
+                .background(Circle().fill(Color.white))
+            
+            ForEach(0..<26, id: \.self) { index in
+                let letter = String(UnicodeScalar("A".unicodeScalars.first!.value + UInt32(index))!)
+                Text(letter)
+                    .font(.largeTitle)
+                    .rotationEffect(.degrees(Double(index) * (360 / 26)))
+                    .offset(y: -70) // Position letters on the circle
+            }
+        }
+        .rotationEffect(.degrees(Double(shift) * (360 / 26))) // Rotate the entire wheel
+    }
+}
+
+#Preview {
+    ContentView()
+}
